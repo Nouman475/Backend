@@ -1,9 +1,9 @@
-const mongoose = require("mongoose")
+const mongoose = require("mongoose");
 require('dotenv').config();
 
+const mongoURI = "mongodb+srv://Nouman:475909@mycluster.yowib.mongodb.net/";
 
-const mongoURI = process.env.MONGO_CONNECTION_STRING
-const connection = async(req,res) => {
+const connectToMongo = async () => {
   try {
     await mongoose
   .connect(mongoURI)
@@ -11,6 +11,6 @@ const connection = async(req,res) => {
   } catch (error) {
    console.log("Error connecting to Mongo DB")
   }
-}
+};
 
-connection()
+module.exports = connectToMongo;
