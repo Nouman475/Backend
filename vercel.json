@@ -1,0 +1,17 @@
+{
+  "version": 2,
+  "builds": [
+    { "src": "app.js", "use": "@vercel/node", "config": { "maxDuration": 10 } }
+  ],
+  "routes": [
+    { "src": "/api/v1/(.*)", "dest": "app.js" },
+    { "src": "/api/v2/(.*)", "dest": "app.js" },
+    { "src": "/api/v3/(.*)", "dest": "app.js" }
+  ],
+  "env": {
+    "PORT": "1000",
+    "MONGO_CONNECTION_STRING": "@MONGO_CONNECTION_STRING",
+    "ACCESS_TOKEN_SECRET": "@ACCESS_TOKEN_SECRET",
+    "REFRESH_TOKEN_SECRET": "@REFRESH_TOKEN_SECRET"
+  }
+}
