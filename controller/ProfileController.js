@@ -1,21 +1,26 @@
 const User = require("../Models/user");
 
 const profileController = {
-  // Update user's full name
-  async updateFullName(req, res) {
+  // Update user's profile (full name or profile image) based on user ID
+  async updateProfile(req, res) {
     try {
-      const { fullName } = req.body;
-      const userId = req.user._id; // Assuming you have middleware to extract user from token
+      const { id } = req.params; // User ID from the URL parameters
+      const { fullName, profileImageUrl } = req.body;
 
       // Validate input
-      if (!fullName) {
-        return res.status(400).json({ message: "Full name is required" });
+      if (!fullName && !profileImageUrl) {
+        return res.status(400).json({ message: "No fields provided to update" });
       }
+
+      // Create an update object dynamically
+      const updateData = {};
+      if (fullName) updateData.fullName = fullName;
+      if (profileImageUrl) updateData.profileImageUrl = profileImageUrl;
 
       // Find and update the user
       const user = await User.findByIdAndUpdate(
-        userId,
-        { fullName },
+        id,
+        updateData,
         { new: true, runValidators: true }
       );
 
@@ -25,44 +30,11 @@ const profileController = {
 
       // Return success response
       res.status(200).json({
-        message: "Full name updated successfully",
+        message: "Profile updated successfully",
         user,
       });
     } catch (error) {
-      console.error("Error updating full name:", error);
-      res.status(500).json({ message: "Internal server error" });
-    }
-  },
-
-  // Update user's profile image
-  async updateProfileImage(req, res) {
-    try {
-      const { profileImageUrl } = req.body;
-      const userId = req.user._id; // Assuming you have middleware to extract user from token
-
-      // Validate input
-      if (!profileImageUrl) {
-        return res.status(400).json({ message: "Profile image URL is required" });
-      }
-
-      // Find and update the user
-      const user = await User.findByIdAndUpdate(
-        userId,
-        { ProfileImageUrl: profileImageUrl },
-        { new: true, runValidators: true }
-      );
-
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-
-      // Return success response
-      res.status(200).json({
-        message: "Profile image updated successfully",
-        user,
-      });
-    } catch (error) {
-      console.error("Error updating profile image:", error);
+      console.error("Error updating profile:", error);
       res.status(500).json({ message: "Internal server error" });
     }
   },
