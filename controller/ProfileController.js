@@ -5,17 +5,17 @@ const profileController = {
   async updateProfile(req, res) {
     try {
       const { id } = req.params; // User ID from the URL parameters
-      const { fullName, profileImageUrl } = req.body;
+      const { fullName, ProfileImageUrl } = req.body; // Corrected to match the schema
 
       // Validate input
-      if (!fullName && !profileImageUrl) {
+      if (!fullName && !ProfileImageUrl) {
         return res.status(400).json({ message: "No fields provided to update" });
       }
 
       // Create an update object dynamically
       const updateData = {};
       if (fullName) updateData.fullName = fullName;
-      if (profileImageUrl) updateData.profileImageUrl = profileImageUrl;
+      if (ProfileImageUrl) updateData.ProfileImageUrl = ProfileImageUrl; // Corrected to match the schema
 
       // Find and update the user
       const user = await User.findByIdAndUpdate(
