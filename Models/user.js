@@ -8,7 +8,6 @@ const userSchema = new mongoose.Schema(
     },
     ProfileImageUrl: { 
       type: String,
-      trim: true
     },
     email: {
       type: String,
