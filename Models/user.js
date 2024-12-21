@@ -8,6 +8,7 @@ const userSchema = new mongoose.Schema(
     },
     ProfileImageUrl: { 
       type: String,
+      default: "https://img.freepik.com/free-vector/smiling-young-man-illustration_1308-174669.jpg",
     },
     email: {
       type: String,
@@ -16,6 +17,7 @@ const userSchema = new mongoose.Schema(
     },
     balance: {
       type: Number,
+      default: 0,
     },
     password: {
       type: String,
