@@ -1,5 +1,5 @@
 const User = require("../Models/user");
-const Event = require("../Models/product");
+const Event = require("../Models/event");
 
 // Create New Event
 const createEvent = async (req, res) => {
