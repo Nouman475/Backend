@@ -1,26 +1,25 @@
 const User = require("../Models/user");
-const Product = require("../Models/product");
+const Event = require("../Models/event");
 
-// Create New Product
-const createProduct = async (req, res) => {
+// Create New Event
+const createEvent = async (req, res) => {
   try {
-    const { itemName, description, email, category, price, isInStock, mainImageUrl, secondaryImageUrls } = req.body;
+    const { title, description, email, category, date, location, visibility } = req.body;
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      const newProduct = new Product({
-        itemName,
+      const newEvent = new Event({
+        title,
         description,
         category,
-        price,
-        isInStock,
-        mainImageUrl,
-        secondaryImageUrls,
-        user: existingUser._id,
+        date,
+        location,
+        visibility,
+        organizer: existingUser._id,
       });
 
-      await newProduct.save();
-      res.status(200).json({ product: newProduct });
+      await newEvent.save();
+      res.status(200).json({ event: newEvent });
     } else {
       res.status(404).json({ message: "User does not exist" });
     }
@@ -29,138 +28,127 @@ const createProduct = async (req, res) => {
   }
 };
 
-// Update Product
-const updateProduct = async (req, res) => {
+// Update Event
+const updateEvent = async (req, res) => {
   try {
-    const { itemName, description, category, price, isInStock, mainImageUrl, secondaryImageUrls } = req.body;
+    const { title, description, category, date, location, visibility } = req.body;
 
-    const updatedProduct = await Product.findByIdAndUpdate(
+    const updatedEvent = await Event.findByIdAndUpdate(
       req.params.id,
-      { itemName, description, category, price, isInStock, mainImageUrl, secondaryImageUrls },
+      { title, description, category, date, location, visibility },
       { new: true }
     );
 
-    if (!updatedProduct) {
-      return res.status(404).json({ message: "Product not found" });
+    if (!updatedEvent) {
+      return res.status(404).json({ message: "Event not found" });
     }
 
-    res.status(200).json(updatedProduct);
-  } catch (error) {
-    res.status(400).json({ message: "Something went wrong", error });
-  }
-}; 
-
-// Add Review to Product
-const addReview = async (req, res) => {
-  try {
-    const { rating, review } = req.body;
-    const productId = req.params.id;
-
-    const product = await Product.findById(productId);
-    if (!product) {
-      return res.status(404).json({ message: "Product not found" });
-    }
-
-    const newReview = {
-      rating,
-      review,
-      timestamp: new Date(),
-    };
-
-    product.reviews.push(newReview);
-    await product.save();
-
-    res.status(200).json({ message: "Review added", product });
-  } catch (error) {
-    res.status(500).json({ message: "Internal Server Error", error });
-  }
-};
-
-// Delete Product
-const deleteProduct = async (req, res) => {
-  try {
-    const deletedProduct = await Product.findByIdAndDelete(req.params.id);
-
-    if (!deletedProduct) {
-      return res.status(404).json({ message: "Product not found" });
-    }
-
-    // Optionally remove product reference from the user's 'products' array
-    await User.updateMany(
-      { products: req.params.id },
-      { $pull: { products: req.params.id } }
-    );
-
-    res.status(200).json({ message: "Product deleted" });
+    res.status(200).json(updatedEvent);
   } catch (error) {
     res.status(400).json({ message: "Something went wrong", error });
   }
 };
 
-// Get All Products
-const getProducts = async (req, res) => {
+// RSVP to Event
+const rsvpEvent = async (req, res) => {
   try {
-    const products = await Product.find().sort({ createdAt: -1 });
+    const { rsvpStatus } = req.body;
+    const eventId = req.params.id;
+    const userId = req.user.id; // Assuming authentication middleware adds the user ID to the request
 
-    if (products.length === 0) {
-      res.status(404).json({ message: "No products found" });
+    const event = await Event.findById(eventId);
+    if (!event) {
+      return res.status(404).json({ message: "Event not found" });
+    }
+
+    const existingRSVP = event.attendees.find((attendee) => attendee.userId.toString() === userId);
+    if (existingRSVP) {
+      existingRSVP.rsvpStatus = rsvpStatus;
     } else {
-      res.status(200).json({ products });
+      event.attendees.push({ userId, rsvpStatus });
+      event.rsvpCount += 1;
+    }
+
+    await event.save();
+    res.status(200).json({ message: "RSVP updated", event });
+  } catch (error) {
+    res.status(500).json({ message: "Internal Server Error", error });
+  }
+};
+
+// Delete Event
+const deleteEvent = async (req, res) => {
+  try {
+    const deletedEvent = await Event.findByIdAndDelete(req.params.id);
+
+    if (!deletedEvent) {
+      return res.status(404).json({ message: "Event not found" });
+    }
+
+    res.status(200).json({ message: "Event deleted" });
+  } catch (error) {
+    res.status(400).json({ message: "Something went wrong", error });
+  }
+};
+
+// Get All Events
+const getEvents = async (req, res) => {
+  try {
+    const events = await Event.find().sort({ date: 1 });
+
+    if (events.length === 0) {
+      res.status(404).json({ message: "No events found" });
+    } else {
+      res.status(200).json({ events });
     }
   } catch (error) {
     res.status(500).json({ message: "Internal Server Error", error });
   }
 };
 
-
-// Get 10 products with limit and skip for pagination
-const getTenProducts = async (req, res) => {
+// Get Events with Pagination
+const getPaginatedEvents = async (req, res) => {
   try {
-    const limit = parseInt(req.query.limit) || 10; // Default to 10 products
+    const limit = parseInt(req.query.limit) || 10; // Default to 10 events
     const skip = parseInt(req.query.skip) || 0;    // Default to 0 (start from the beginning)
 
-    const products = await Product.find()
-      .sort({ createdAt: -1 })
+    const events = await Event.find()
+      .sort({ date: 1 })
       .limit(limit)
       .skip(skip);
-   
-    if (products.length === 0) {
-      return res.status(404).json({ message: "No products found" });
+
+    if (events.length === 0) {
+      return res.status(404).json({ message: "No events found" });
     }
 
-    res.status(200).json({ products });
+    res.status(200).json({ events });
   } catch (error) {
     res.status(500).json({ message: "Internal Server Error", error });
   }
 };
 
-
-// Get a specific product
-
-const getOneProduct = async (req, res) => {
+// Get a Specific Event
+const getOneEvent = async (req, res) => {
   try {
-    const product_id = req.params.id;
-    const product = await Product.findById(product_id); // Use findById for a single product
+    const eventId = req.params.id;
+    const event = await Event.findById(eventId);
 
-    if (!product) { // Check if the product exists
-      res.status(404).json({ message: "Product not found" });
+    if (!event) {
+      res.status(404).json({ message: "Event not found" });
     } else {
-      res.status(200).json({ product }); // Return the single product
+      res.status(200).json({ event });
     }
   } catch (error) {
     res.status(500).json({ message: "Internal Server Error", error });
   }
 };
-
-
 
 module.exports = {
-  createProduct,
-  updateProduct,
-  deleteProduct,
-  getProducts,
-  getOneProduct,
-  getTenProducts,
-  addReview,
+  createEvent,
+  updateEvent,
+  deleteEvent,
+  getEvents,
+  getOneEvent,
+  getPaginatedEvents,
+  rsvpEvent,
 };
- 

@@ -1,57 +1,60 @@
 const mongoose = require("mongoose");
 
-const ProductSchema = new mongoose.Schema({
-  itemName: {
-    type: String,
-    required: true,
-    trim: true
+const EventSchema = new mongoose.Schema(
+  {
+    title: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    description: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    date: {
+      type: Date,
+      required: true,
+    },
+    location: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    category: {
+      type: String,
+      required: true,
+      trim: true,
+      enum: ["Tech", "Music", "Sports", "Other"], // Modify categories as needed
+    },
+    visibility: {
+      type: String,
+      required: true,
+      enum: ["Public", "Private"],
+    },
+    organizer: {
+      type: mongoose.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    attendees: [
+      {
+        userId: {
+          type: mongoose.Types.ObjectId,
+          ref: "User",
+        },
+        rsvpStatus: {
+          type: String,
+          enum: ["Yes", "No", "Maybe"],
+        },
+      },
+    ],
+    rsvpCount: {
+      type: Number,
+      default: 0,
+    },
   },
-  category: {
-    type: String,
-    required: true,
-    trim: true
-  },
-  description: {
-    type: String,
-    required: true,
-    trim: true
-  },
-  isInStock: {
-    type: Boolean,
-    default: true
-  },
-  mainImageUrl: { 
-    type: String,
-    trim: true
-  },
-  secondaryImageUrls: [String], 
-  price: {
-    type: Number,
-    required: true,
-    min: 0
-  },
-  user: {
-    type: mongoose.Types.ObjectId,
-    ref: "User",
-  },
-  reviews: [
-    {
-      rating: { 
-        type: Number, 
-        required: true, 
-        min: 1, 
-        max: 5 
-      }, 
-      review: { 
-        type: String, 
-        required: true 
-      },  
-      timestamp: { 
-        type: Date, 
-        default: Date.now 
-      },  
-    }
-  ]
-}, { timestamps: true });
+  { timestamps: true }
+);
 
-module.exports = mongoose.model("Product", ProductSchema);
+module.exports = mongoose.model("Event", EventSchema);

@@ -1,26 +1,25 @@
 const router = require("express").Router();
-const productController = require("../controller/CrudController");
+const eventController = require("../controller/CrudController");
 
-// Create New Product
-router.post("/addProduct", productController.createProduct);
+// Create New Event
+router.post("/addEvent", eventController.createEvent);
 
-// Update Product
-router.put("/updateProduct/:id", productController.updateProduct);
+// Update Event
+router.put("/updateEvent/:id", eventController.updateEvent);
 
-// Delete Product
-router.delete("/deleteProduct/:id", productController.deleteProduct);
+// Delete Event
+router.delete("/deleteEvent/:id", eventController.deleteEvent);
 
-// Get All Products
-router.get("/getProducts", productController.getProducts);
+// Get All Events
+router.get("/getEvents", eventController.getEvents);
 
-//Get a single product
-router.get("/getProduct/:id", productController.getOneProduct);
+// Get a Single Event
+router.get("/getEvent/:id", eventController.getOneEvent);
 
-//Get 10 product
-router.get("/getTenProducts", productController.getTenProducts);
+// Get Paginated Events (e.g., 10 events at a time)
+router.get("/getPaginatedEvents", eventController.getPaginatedEvents);
 
-//Add a review
-router.post("/addReview/:id", productController.addReview);
+// RSVP to an Event
+router.post("/rsvpEvent/:id", eventController.rsvpEvent);
 
 module.exports = router;
-  
